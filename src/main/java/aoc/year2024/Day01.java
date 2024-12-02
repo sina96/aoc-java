@@ -2,6 +2,7 @@ package aoc.year2024;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 
@@ -23,7 +24,9 @@ public class Day01 {
       processInput(input, leftNumbers, rightNumbers);
 
       int totalDistance = calculateSumOfDistances(leftNumbers, rightNumbers);
-      System.out.println("Total Sum of Distances: " + totalDistance);
+      int totalSimilarityScore = calculateTotalSimilarityScore(leftNumbers, rightNumbers);
+      System.out.println("Total Sum of Distances are: " + totalDistance);
+      System.out.println("Total Sum of totalSimilarities are: " + totalSimilarityScore);
    }
 
    private static void processInput(List<String> input, List<Integer> leftNumbers, List<Integer> rightNumbers) {
@@ -60,6 +63,18 @@ public class Day01 {
 
       return IntStream.range(0, leftNumbers.size())
             .map(i -> Math.abs(leftNumbers.get(i) - rightNumbers.get(i)))
+            .sum();
+   }
+
+   private int calculateTotalSimilarityScore(List<Integer> leftNumbers, List<Integer> rightNumbers)
+   {
+      return leftNumbers.stream()
+            .mapToInt(leftNum -> {
+               long occurrence = rightNumbers.stream()
+                     .filter(leftNum::equals)
+                     .count();
+               return (int) (leftNum * occurrence);
+            })
             .sum();
    }
 }

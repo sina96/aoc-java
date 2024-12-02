@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 public class Day02 {
    private final List<String> input;
    private final List<Boolean> checklist = new ArrayList<>();
+   private final List<Boolean> checkListModified = new ArrayList<>();
 
    public Day02(List<String> input) {
       this.input = input;
@@ -21,12 +22,13 @@ public class Day02 {
       {
          throw new IllegalArgumentException("Input list cannot be null or empty");
       }
-      processInput(input, checklist);
+      processInput(input, checklist, checkListModified);
 
       System.out.println("Number of safe lines are: " + checklist.stream().filter(Boolean::booleanValue).count());
+      System.out.println("Number of safe lines after rules modification are: " + checkListModified.stream().filter(Boolean::booleanValue).count());
    }
 
-   private static void processInput(List<String> input, List<Boolean> checklist) {
+   private static void processInput(List<String> input, List<Boolean> checklist, List<Boolean> checkListModified) {
       input.stream()
             .map(String::trim) // Trim each line
             .filter(line -> !line.isEmpty()) // Filter out empty or whitespace-only lines
@@ -42,7 +44,11 @@ public class Day02 {
                }
             })
             .filter(Objects::nonNull) // Exclude null results
-            .forEach(lineNumbers -> checklist.add(isASafeLine(lineNumbers)));
+            .forEach(lineNumbers ->
+            {
+               checklist.add(isASafeLine(lineNumbers));
+               checkListModified.add(isASafeLineWithOneLevelRemoval(lineNumbers));
+            });
    }
 
    private static Boolean isASafeLine(List<Integer> lineNumbers)
@@ -69,5 +75,28 @@ public class Day02 {
       boolean isDecreasing = differences.stream().allMatch(diff -> diff < 0);
 
       return isIncreasing || isDecreasing; // Return true if consistent trend
+   }
+
+   private static Boolean isASafeLineWithOneLevelRemoval(List<Integer> lineNumbers)
+   {
+      if (lineNumbers == null || lineNumbers.size() < 2) {
+         return false; // A single number or null doesn't meet the criteria
+      }
+
+      // Check if the original list is already valid
+      if (isASafeLine(lineNumbers)) {
+         return true;
+      }
+
+      // Check if removing any single element makes the list valid
+      return IntStream.range(0, lineNumbers.size())
+            .anyMatch(i -> isASafeLine(removeElement(lineNumbers, i)));
+   }
+
+   private static List<Integer> removeElement(List<Integer> numbers, int index) {
+      return IntStream.range(0, numbers.size())
+            .filter(i -> i != index) // Skip the index to be removed
+            .mapToObj(numbers::get)
+            .toList();
    }
 }
