@@ -11,6 +11,8 @@ public class Day05
    private final List<String> input;
    Map<Integer, List<Integer>> rulesMap = new HashMap<>();
    private final List<List<Integer>> listOfUpdates = new ArrayList<>();
+   private int partOneSum = 0;
+   private int partTwoSum = 0;
 
    public Day05(List<String> input)
    {
@@ -25,13 +27,10 @@ public class Day05
       }
 
       makeTheMapRuleAndListOfUpdates(input);
+      calculatePartOneSumAndPart2Sum();
 
-      int sumOfMiddleElementsOfCorrectUpdates = calculateSumOfMiddleElementsOfCorrectUpdates();
-
-      System.out.println("Part 1: " + sumOfMiddleElementsOfCorrectUpdates);
-
-      int sumOfMiddleElementsOfRefinedBadUpdates = calculateSumOfMiddleElementsOfRefinedBadUpdates();
-      System.out.println("Part 2: " + sumOfMiddleElementsOfRefinedBadUpdates);
+      System.out.println("Part 1: " + partOneSum);
+      System.out.println("Part 2: " + partTwoSum);
    }
 
 
@@ -74,35 +73,19 @@ public class Day05
       }
    }
 
-   private int calculateSumOfMiddleElementsOfCorrectUpdates()
+   private void calculatePartOneSumAndPart2Sum()
    {
-      int sum = 0;
-
       for(List<Integer> updateList : listOfUpdates)
       {
           if(followsTheRules(updateList))
           {
-             sum += getTheMiddleElement(updateList);
+             partOneSum += getTheMiddleElement(updateList);
+          }
+          else {
+             updateList = reorderList(updateList);
+             partTwoSum += getTheMiddleElement(updateList);
           }
       }
-
-      return sum;
-   }
-
-   private int calculateSumOfMiddleElementsOfRefinedBadUpdates()
-   {
-      int sum = 0;
-
-      for(List<Integer> updateList : listOfUpdates)
-      {
-         if(!followsTheRules(updateList))
-         {
-            updateList = reorderList(updateList);
-            sum += getTheMiddleElement(updateList);
-         }
-      }
-
-      return sum;
    }
 
 
