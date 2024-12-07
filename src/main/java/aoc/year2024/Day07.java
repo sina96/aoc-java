@@ -1,18 +1,14 @@
 package aoc.year2024;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
 public class Day07
 {
    private final List<String> input;
-   
-   private final Map<Long, List<Long>> valueMap = new HashMap<>();
 
    public Day07(List<String> input)
    {
