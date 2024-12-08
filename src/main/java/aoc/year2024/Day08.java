@@ -79,7 +79,7 @@ public class Day08
 
          if(positions.size() < 2)
          {
-            break;
+            continue;
          }
 
          for (int k = 0; k < positions.size(); k++) {
@@ -116,7 +116,7 @@ public class Day08
 
          if(positions.size() < 2)
          {
-            break;
+            continue;
          }
 
          for (int k = 0; k < positions.size(); k++) {
