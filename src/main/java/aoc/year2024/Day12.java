@@ -23,8 +23,8 @@ public class Day12
 
       char[][] grid = makeTheGrid(input);
 
-      int totalPriceWithPerimeter = traverseAndCalculateTotalPriceWithPerimeter(grid);
-      int totalPriceWithSide = traverseAndCalculateTotalPriceWithSide(grid);
+      int totalPriceWithPerimeter = traverseAndCalculateTotalPrice(grid, true);
+      int totalPriceWithSide = traverseAndCalculateTotalPrice(grid, false);
 
       System.out.println("Part 1: " + totalPriceWithPerimeter);
       System.out.println("Part 2: " + totalPriceWithSide);
@@ -35,29 +35,18 @@ public class Day12
       return gridData.stream().map(String::toCharArray).toArray(char[][]::new);
    }
 
-   private int traverseAndCalculateTotalPriceWithPerimeter(final char[][] grid) {
+   private int traverseAndCalculateTotalPrice(final char[][] grid, boolean usePerimeter) {
       final boolean[][] visited = new boolean[grid.length][grid[0].length];
       int totalPrice = 0;
       for (int y = 0; y < grid.length; y++) {
          for (int x = 0; x < grid[0].length; x++) {
             if (!visited[y][x]) {
                final Set<String> region = traverseAndFindRegion(x, y, grid[y][x], grid, visited);
-               totalPrice += region.size() * calulatePerimeterForRegion(region, grid);
-            }
-         }
-      }
-      return totalPrice;
-   }
-
-   private int traverseAndCalculateTotalPriceWithSide(char[][] grid)
-   {
-      final boolean[][] visited = new boolean[grid.length][grid[0].length];
-      int totalPrice = 0;
-      for (int y = 0; y < grid.length; y++) {
-         for (int x = 0; x < grid[0].length; x++) {
-            if (!visited[y][x]) {
-               final Set<String> region = traverseAndFindRegion(x, y, grid[y][x], grid, visited);
-               totalPrice += region.size() * calculateSidesForRegion(region);
+               if(usePerimeter) {
+                  totalPrice += region.size() * calulatePerimeterForRegion(region, grid);
+               } else {
+                  totalPrice += region.size() * calculateSidesForRegion(region);
+               }
             }
          }
       }
