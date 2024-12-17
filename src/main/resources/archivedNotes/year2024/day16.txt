@@ -1,0 +1,301 @@
+first solution with A*:
+package aoc.year2024;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.Set;
+
+
+public class Day16
+{
+   private final List<String> input;
+   private static final String[] directions = {"N", "E", "S", "W"};
+
+   public Day16(List<String> input)
+   {
+      this.input = input;
+   }
+
+   public void solve()
+   {
+      if (input == null || input.isEmpty())
+      {
+         throw new IllegalArgumentException("Input list cannot be null or empty");
+      }
+
+      solvePartOne();
+   }
+
+   private void solvePartOne()
+   {
+      char[][] grid = MakeTheGrid();
+
+      // Directional data
+      Map<String, int[]> dirMoves = makeTheDirectionMovesMap();
+
+      // Find start (S) and end (E) positions
+      int startX = -1, startY = -1, endX = -1, endY = -1;
+      for (int y = 0; y < grid.length; y++) {
+         for (int x = 0; x < grid[0].length; x++) {
+            if (grid[y][x] == 'S') {
+               startX = x;
+               startY = y;
+            } else if (grid[y][x] == 'E') {
+               endX = x;
+               endY = y;
+            }
+         }
+      }
+
+      int result = performAStarPathfinding(grid, dirMoves, "E", startX, startY, endX, endY, Integer.MAX_VALUE);
+      System.out.printf("Lowest Score using %s: %d%n", "A*", result);
+
+      Set<String> nodes = new HashSet<>();
+      nodes.add(startX+"-"+startY);
+      nodes.add(endX+"-"+endY);
+      for (int y = 0; y < grid.length; y++) {
+         for (int x = 0; x < grid[0].length; x++) {
+            if (grid[y][x] !='#') {
+               int startToNodeResult = performAStarPathfinding(grid, dirMoves, "E", startX, startY, x, y, result);
+               if(startToNodeResult > result) {
+                  continue;
+               }
+               ArrayList<Integer> nodeToEndResults = new ArrayList<>();
+               for(String direction : directions)
+               {
+                  int end2pointResult = performAStarPathfinding(grid, dirMoves, direction, x, y, endX, endY, result);
+                  if(end2pointResult < result)
+                     nodeToEndResults.add(end2pointResult);
+               }
+               for(Integer r : nodeToEndResults) {
+                  if(r+ startToNodeResult <= result)
+                     nodes.add(x+"-"+y);
+                  }
+            }
+         }
+      }
+      System.out.println(nodes.size());
+   }
+
+   private static Map<String, int[]> makeTheDirectionMovesMap()
+   {
+      Map<String, int[]> dirMoves = new HashMap<>();
+      dirMoves.put("N", new int[]{-1, 0});
+      dirMoves.put("E", new int[]{0, 1});
+      dirMoves.put("S", new int[]{1, 0});
+      dirMoves.put("W", new int[]{0, -1});
+      return dirMoves;
+   }
+
+   private char[][] MakeTheGrid()
+   {
+      char[][] grid = new char[input.size()][];
+      for (int i = 0; i < input.size(); i++) {
+         grid[i] = input.get(i).toCharArray();
+      }
+      return grid;
+   }
+
+   public static int performAStarPathfinding(char[][] grid, Map<String, int[]> dirMoves, String startDirection,
+         int startX, int startY, int endX, int endY, Integer limit)
+   {
+      int rows = grid.length;
+      int cols = grid[0].length;
+
+      if (startX == -1 || startY == -1 || endX == -1 || endY == -1) {
+         throw new IllegalArgumentException("Start or End position not found in the grid");
+      }
+
+      // Priority queue for A* search
+      PriorityQueue<Node> priorityQueue = new PriorityQueue<>();
+      Map<Node, Integer> gScores = new HashMap<>();
+      int initialHeuristic = heuristic(startX, startY, endX, endY);
+      Node startNode = new Node(startX, startY, startDirection, 0, initialHeuristic, null);
+      priorityQueue.offer(startNode);
+      gScores.put(startNode, 0);
+
+      // Visited set
+      Set<Node> visited = new HashSet<>();
+      Node goalNode = null;
+
+      // A* search
+      while (!priorityQueue.isEmpty()) {
+         Node current = priorityQueue.poll();
+
+         // If we reach the end, return the gScore (actual cost)
+         if (current.x == endX && current.y == endY) {
+            goalNode = current;
+            break;
+         }
+
+         if(current.gScore > limit) {
+            return Integer.MAX_VALUE;
+         }
+
+         // Skip if already visited
+         if (visited.contains(current)) {
+            continue;
+         }
+         visited.add(current);
+
+         // Move forward
+         int[] move = dirMoves.get(current.direction);
+         int newX = current.x + move[1];
+         int newY = current.y + move[0];
+         if (isInBounds(newX, newY, cols, rows) && grid[newY][newX] != '#') {
+            int newGScore = current.gScore + 1;
+            int newFScore = newGScore + heuristic(newX, newY, endX, endY);
+            priorityQueue.offer(new Node(newX, newY, current.direction, newGScore, newFScore, current));
+         }
+
+         // Rotate clockwise and counterclockwise
+
+         // Predefine direction indices for rotations
+         int[] rotationOffsets = {-1, 1}; // -1: counterclockwise, 1: clockwise
+
+         for (int offset : rotationOffsets) {
+            int currentIndex = Arrays.asList(directions).indexOf(current.direction);
+            int newIndex = (currentIndex + offset + 4) % 4; // Ensure circular rotation
+            String newDirection = directions[newIndex];
+
+            int newGScore = current.gScore + 1000;
+            int newFScore = newGScore + heuristic(current.x, current.y, endX, endY);
+            priorityQueue.offer(new Node(current.x, current.y, newDirection, newGScore, newFScore, current));
+         }
+      }
+
+      if (goalNode != null) {
+         int uniqueSteps = getUniqueStepsInPath(goalNode);
+         //System.out.println("Total unique steps in A*: " + uniqueSteps);
+         return goalNode.gScore; // Return the lowest score
+      }
+      return Integer.MAX_VALUE; // If no path is found
+   }
+
+   public static Map<String, Integer> performDijkstra(char[][] grid, Map<String, int[]> dirMoves,
+         int startX, int startY, int endX, int endY)
+   {
+      int rows = grid.length;
+      int cols = grid[0].length;
+
+      if (startX == -1 || startY == -1 || endX == -1 || endY == -1) {
+         throw new IllegalArgumentException("Start or End position not found in the grid");
+      }
+
+      // Priority queue for A* search
+      PriorityQueue<Node> priorityQueue = new PriorityQueue<>();
+
+
+      String currentDirection = "E";
+      Node startNode = new Node(startX, startY, currentDirection, 0, 0, null);
+
+      Map<String, Integer> scores = new HashMap<>();
+
+      priorityQueue.offer(startNode);
+      scores.put(startNode.x+"-"+startNode.y, 0);
+
+      // Perform DFS
+      while (!priorityQueue.isEmpty()) {
+         Node current = priorityQueue.poll();
+         int currentScore = current.gScore;
+
+         // Move forward
+         int[] move = dirMoves.get(current.direction);
+         int newX = current.x + move[1];
+         int newY = current.y + move[0];
+         if (isInBounds(newX, newY, cols, rows) && grid[newY][newX] != '#') {
+            int newgScore = currentScore;
+            newgScore++;
+            Node neighbor = new Node(newX, newY, current.direction, newgScore, 0, current);
+            if(newgScore < scores.getOrDefault(newX+"-"+newY, Integer.MAX_VALUE)) {
+               scores.put(newX+"-"+newY, newgScore);
+               priorityQueue.offer(neighbor);
+            }
+         }
+
+         // Rotate clockwise and counterclockwise
+         int[] rotationOffsets = {-1, 1};
+         for (int offset : rotationOffsets) {
+            int currentIndex = Arrays.asList(directions).indexOf(current.direction);
+            int newIndex = (currentIndex + offset + 4) % 4;
+            String newDirection = directions[newIndex];
+            int newGScore = currentScore;
+            newGScore += 1000;
+            Node turningNeighbor = new Node(current.x, current.y, newDirection, newGScore, 0, current);
+            if(newGScore < scores.getOrDefault(current.x+"-"+current.y, Integer.MAX_VALUE)) {
+               scores.put(current.x+"-"+current.y, newGScore);
+               priorityQueue.offer(turningNeighbor);
+            }
+         }
+      }
+      return scores;
+   }
+
+   private static int getUniqueStepsInPath(Node goalNode)
+   {
+      Set<String> uniqueNodes = new HashSet<>();
+      Node current = goalNode;
+      while (current != null) {
+         String nodePosition = current.x + "-" + current.y; // Unique key for each position
+         uniqueNodes.add(nodePosition); // Add the position to the set
+         //System.out.println("(" + current.x + ", " + current.y + ") -> Direction: " + current.direction);
+         current = current.parent;
+      }
+
+      // Total unique nodes count
+      int uniqueSteps = uniqueNodes.size();
+      return uniqueSteps;
+   }
+
+   private static boolean isInBounds(int newX, int newY, int cols, int rows)
+   {
+      return newX >= 0 && newY >= 0 && newX < cols && newY < rows;
+   }
+
+   // Heuristic function (Manhattan distance)
+   private static int heuristic(int x, int y, int endX, int endY)
+   {
+      return Math.abs(x - endX) + Math.abs(y - endY);
+   }
+
+   static class Node implements Comparable<Node> {
+      int x, y;
+      String direction; // "N", "E", "S", "W"
+      int gScore; // Cost to reach this node
+      int fScore; // Estimated total cost (g + h)
+      Node parent; // To trace back the path
+
+      Node(int x, int y, String direction, int gScore, int fScore, Node parent) {
+         this.x = x;
+         this.y = y;
+         this.direction = direction;
+         this.gScore = gScore;
+         this.fScore = fScore;
+         this.parent = parent;
+      }
+
+      @Override
+      public int compareTo(Node other) {
+         return Integer.compare(this.fScore, other.fScore); // Compare by fScore
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+         if (this == obj) return true;
+         if (!(obj instanceof Node other)) return false;
+         return this.x == other.x && this.y == other.y && this.direction.equals(other.direction);
+      }
+
+      @Override
+      public int hashCode() {
+         return Objects.hash(x, y, direction);
+      }
+   }
+}
+
