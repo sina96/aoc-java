@@ -45,6 +45,11 @@ public class Day04
    {
       int sum = 0;
 
+      if (paperPositionSet.isEmpty())
+      {
+         return sum;
+      }
+
       List<Position> accessiblePaperPositions = accessPaperRolls(paperPositionSet);
 
       if (!accessiblePaperPositions.isEmpty()) {
