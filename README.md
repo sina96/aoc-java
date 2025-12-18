@@ -1,6 +1,8 @@
-# Advent of Code 2024
+# Advent of Code 2025-
 
 This repository contains my solutions for the Advent of Code, implemented in Java starting 2024.
+
+currently adding solutions for 2025!
 
 ## Project Structure
 
