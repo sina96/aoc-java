@@ -41,6 +41,10 @@ public class Day04
       return accessiblePaperPositions.size();
    }
 
+   /*
+      recursive
+    */
+   /*
    private int countLoopedAccessiblePaperPositions(Set<Position> paperPositionSet)
    {
       int sum = 0;
@@ -58,7 +62,29 @@ public class Day04
          sum += countLoopedAccessiblePaperPositions(paperPositionSet);
       }
       return sum;
+   }*/
+
+   /*
+      non recursive
+    */
+   private int countLoopedAccessiblePaperPositions(Set<Position> paperPositionSet) {
+      int sum = 0;
+
+      while (!paperPositionSet.isEmpty()) {
+         List<Position> accessible = accessPaperRolls(paperPositionSet);
+
+         if (accessible.isEmpty()) {
+            break;
+         }
+
+         sum += accessible.size();
+
+         accessible.forEach(paperPositionSet::remove);
+      }
+
+      return sum;
    }
+
 
 
    private static List<Position> accessPaperRolls(Set<Position> paperPositionSet)
