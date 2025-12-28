@@ -55,7 +55,7 @@ public class Day09
       return best;
    }
 
-   private int findLargestRectangleAreaPart2() {
+   private long findLargestRectangleAreaPart2() {
       if (redTiles.size() < 2) return 0;
 
       // 1) Build compressed axes (include v and v+1 so unit-thick boundary strips exist)
@@ -113,7 +113,7 @@ public class Day09
          }
       }
 
-      return (int) best;
+      return best;
    }
 
    private static long[][] buildPrefixSumsOfAllowedTiles(int cxN, int cyN, int[] xs, int[] ys, boolean[][] filled, boolean[][] outside)
