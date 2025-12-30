@@ -2,7 +2,7 @@
 
 This repository contains my solutions for the Advent of Code, implemented in Java starting 2024.
 
-currently adding solutions for 2025!
+Solution for AoC 2025 added.
 
 ## Project Structure
 
